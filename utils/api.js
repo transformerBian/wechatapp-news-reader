@@ -2,6 +2,7 @@
 // JSON 文件见 mock 文件夹
 // const DOMAIN = 'http://localhost:8080/mock'
 const DOMAIN = 'https://h5.ahmq.net/demo/miniapp-static-api/mock'
+const DOMAIN2 = 'http://127.0.0.1:8080/api/v1'
 
 export function get (url, data){
   return request(url, 'GET', data)
@@ -57,7 +58,8 @@ export async function getHomeBannerList () {
 
 // 根据分类和页码加载数据：模拟的数据重新打乱
 export async function getNewsByCategory (categoryId, pageId = 1) {
-  const data = await get(`api-news-list.json`, { categoryId, pageId })
+  //const data = await get(`api-news-list.json`, { categoryId, pageId })
+  const data = await request2("/feed/list", 'GET', { categoryId, pageId })
   return data.sort((a, b) => 0.5 - Math.random())
 }
 
@@ -76,6 +78,31 @@ export function request(api, method, data = {}){
   return new Promise((resove, reject) => {
     wx.request({
       url: `${DOMAIN}/${api}`,
+      data: data,
+      method: method,
+      dataType: 'json',
+      success: function(res){
+        wx.hideNavigationBarLoading()
+        const data = res.data
+        if (data.code) {
+          reject(new Error(data.message))
+        } else {
+          resove(data.data)
+        }
+      },
+      fail: function(err) {
+        wx.hideNavigationBarLoading()
+        reject(new Error(err.errMsg))
+      }
+    })
+  })
+}
+
+export function request2(api, method, data = {}){
+  wx.showNavigationBarLoading()
+  return new Promise((resove, reject) => {
+    wx.request({
+      url: `${DOMAIN2}/${api}`,
       data: data,
       method: method,
       dataType: 'json',
